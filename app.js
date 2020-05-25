@@ -3,9 +3,12 @@ const mongoose = require('mongoose');
 const bodyParser = require('body-parser');
 const helmet = require('helmet');
 const rateLimit = require('express-rate-limit');
+const { celebrate, Joi } = require('celebrate');
+const { errors } = require('celebrate');
 
 const { auth } = require('./middlewares/auth');
 const { login, createUser } = require('./controllers/users');
+const { requestLogger, errorLogger } = require('./middlewares/logger');
 
 const { PORT = 3000 } = process.env;
 
@@ -28,25 +31,51 @@ mongoose.connect('mongodb://localhost:27017/mestodb', {
   useFindAndModify: false,
 });
 
-app.post('/signup', createUser);
-app.post('/signin', login);
+app.use(requestLogger);
+
+app.post('/signup', celebrate({
+  body: Joi.object().keys({
+    name: Joi.string().required().min(2).max(30),
+    about: Joi.string().required().min(2).max(30),
+    avatar: Joi.string().required().regex(/^http[s]?:\/\/(www\.)?(?!(www\.))((\d{1,3}\.){3}\d{1,3}(:\d{2,5})?|([a-z-]+(\.|:\d{2,5}))+)(\/?)(([a-zA-Z0-9-]{1,}?\/?)*#?)?$/i),
+    email: Joi.string().required().email(),
+    password: Joi.string().min(8).regex(/^[a-zA-Z0-9]$/i),
+  }),
+}), createUser);
+app.post('/signin', celebrate({
+  body: Joi.object().keys({
+    email: Joi.string().required().email(),
+    password: Joi.string().min(8).regex(/^[a-zA-Z0-9]$/i),
+  }),
+}), login);
 
 app.use(auth);
 
 app.use('/cards', require('./routes/cards'));
 app.use('/users', require('./routes/users'));
 
+app.use(errorLogger);
+
+app.use(errors());
+
 app.use((err, req, res, next) => {
   const isValidationError = err.message.indexOf('ValidationError');
-  const isNotFound = err.message.indexOf('not found');
 
-  if (err.message && (isValidationError || isNotFound)) {
+  if (err.message && isValidationError) {
     res.status(400).send({ message: err.message });
   } else {
-    res.status(500).send({ message: err.stack });
+    const { statusCode = 500, message } = err;
+
+    res
+      .status(statusCode)
+      .send({
+        message: statusCode === 500
+          ? 'На сервере произошла ошибка'
+          : message,
+      });
   }
 
-  next(err);
+  next();
 });
 
 app.use('/', (req, res) => {
