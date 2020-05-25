@@ -1,7 +1,7 @@
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const User = require('../models/user');
-
+const { JWT_SECRET_KEY } = require('../config/config');
 const NotFoundError = require('../errors/not-found-err');
 
 module.exports.login = (req, res, next) => {
@@ -10,7 +10,7 @@ module.exports.login = (req, res, next) => {
   return User.findUserByCredentials(email, password)
     .then((user) => {
       res.send({
-        token: jwt.sign({ _id: user._id }, 'key-key-key', { expiresIn: '7d' }),
+        token: jwt.sign({ _id: user._id }, JWT_SECRET_KEY, { expiresIn: '7d' }),
       });
     })
     .catch(next);

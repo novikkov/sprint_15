@@ -6,11 +6,12 @@ const rateLimit = require('express-rate-limit');
 const { celebrate, Joi } = require('celebrate');
 const { errors } = require('celebrate');
 
+require('dotenv').config();
+
 const { auth } = require('./middlewares/auth');
 const { login, createUser } = require('./controllers/users');
 const { requestLogger, errorLogger } = require('./middlewares/logger');
-
-const { PORT = 3000 } = process.env;
+const { PORT, SERVER_CONNECT } = require('./config/config');
 
 const app = express();
 
@@ -25,13 +26,19 @@ app.use(bodyParser.json());
 app.use(helmet());
 app.use(limiter);
 
-mongoose.connect('mongodb://localhost:27017/mestodb', {
+mongoose.connect(SERVER_CONNECT, {
   useNewUrlParser: true,
   useCreateIndex: true,
   useFindAndModify: false,
 });
 
 app.use(requestLogger);
+
+app.get('/crash-test', () => {
+  setTimeout(() => {
+    throw new Error('Сервер сейчас упадёт');
+  }, 0);
+});
 
 app.post('/signup', celebrate({
   body: Joi.object().keys({

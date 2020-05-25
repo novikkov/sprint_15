@@ -1,4 +1,5 @@
 const jwt = require('jsonwebtoken');
+const { JWT_SECRET_KEY } = require('../config/config');
 
 const handleAuthError = (res) => {
   res
@@ -16,7 +17,7 @@ const auth = (req, res, next) => {
   let payload;
 
   try {
-    payload = jwt.verify(token, 'key-key-key');
+    payload = jwt.verify(token, JWT_SECRET_KEY);
   } catch (err) {
     return handleAuthError(res);
   }
