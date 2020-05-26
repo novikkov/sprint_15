@@ -1,3 +1,4 @@
+require('dotenv').config();
 const express = require('express');
 const mongoose = require('mongoose');
 const bodyParser = require('body-parser');
@@ -5,8 +6,6 @@ const helmet = require('helmet');
 const rateLimit = require('express-rate-limit');
 const { celebrate, Joi } = require('celebrate');
 const { errors } = require('celebrate');
-
-require('dotenv').config();
 
 const { auth } = require('./middlewares/auth');
 const { login, createUser } = require('./controllers/users');

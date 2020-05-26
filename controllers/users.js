@@ -25,6 +25,7 @@ module.exports.getUsers = (req, res, next) => {
 
 module.exports.getUserById = (req, res, next) => {
   User.findById(req.params.userId)
+    .orFail(new NotFoundError(`Пользователя с данным id: ${req.params.userId} не существует`))
     .then((user) => {
       if (user) {
         res.send({ data: user });
@@ -32,7 +33,6 @@ module.exports.getUserById = (req, res, next) => {
         throw new NotFoundError(`Пользователя с данным id: ${req.params.userId} не существует`);
       }
     })
-    .orFail(new NotFoundError(`Пользователя с данным id: ${req.params.userId} не существует`))
     .catch(next);
 };
 
