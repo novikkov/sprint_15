@@ -11,7 +11,7 @@ require('dotenv').config();
 const { auth } = require('./middlewares/auth');
 const { login, createUser } = require('./controllers/users');
 const { requestLogger, errorLogger } = require('./middlewares/logger');
-const { PORT, SERVER_CONNECT } = require('./config/config');
+const { PORT, SERVER_CONNECT } = require('./config');
 
 const app = express();
 
@@ -46,13 +46,13 @@ app.post('/signup', celebrate({
     about: Joi.string().required().min(2).max(30),
     avatar: Joi.string().required().regex(/^http[s]?:\/\/(www\.)?(?!(www\.))((\d{1,3}\.){3}\d{1,3}(:\d{2,5})?|([a-z-]+(\.|:\d{2,5}))+)(\/?)(([a-zA-Z0-9-]{1,}?\/?)*#?)?$/i),
     email: Joi.string().required().email(),
-    password: Joi.string().min(8).regex(/^[a-zA-Z0-9]$/i),
+    password: Joi.string().min(8).regex(/[a-zA-Z0-9]/i),
   }),
 }), createUser);
 app.post('/signin', celebrate({
   body: Joi.object().keys({
     email: Joi.string().required().email(),
-    password: Joi.string().min(8).regex(/^[a-zA-Z0-9]$/i),
+    password: Joi.string().min(8).regex(/[a-zA-Z0-9]/i),
   }),
 }), login);
 
@@ -65,28 +65,21 @@ app.use(errorLogger);
 
 app.use(errors());
 
-app.use((err, req, res, next) => {
-  const isValidationError = err.message.indexOf('ValidationError');
-
-  if (err.message && isValidationError) {
-    res.status(400).send({ message: err.message });
-  } else {
-    const { statusCode = 500, message } = err;
-
-    res
-      .status(statusCode)
-      .send({
-        message: statusCode === 500
-          ? 'На сервере произошла ошибка'
-          : message,
-      });
-  }
-
+app.use('/', (req, res, next) => {
+  res.status(404).json({ message: 'Запрашиваемый ресурс не найден' });
   next();
 });
 
-app.use('/', (req, res) => {
-  res.status(404).json({ message: 'Запрашиваемый ресурс не найден' });
+app.use((err, req, res, next) => {
+  const { statusCode = 500, message } = err;
+
+  res
+    .status(statusCode)
+    .send({
+      message: statusCode === 500
+        ? 'На сервере произошла ошибка'
+        : message,
+    });
 });
 
 app.listen(PORT, () => {

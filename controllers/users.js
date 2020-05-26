@@ -1,8 +1,9 @@
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const User = require('../models/user');
-const { JWT_SECRET_KEY } = require('../config/config');
+const { JWT_SECRET_KEY } = require('../config');
 const NotFoundError = require('../errors/not-found-err');
+const AuthError = require('../errors/auth-err');
 
 module.exports.login = (req, res, next) => {
   const { email, password } = req.body;
@@ -31,6 +32,7 @@ module.exports.getUserById = (req, res, next) => {
         throw new NotFoundError(`Пользователя с данным id: ${req.params.userId} не существует`);
       }
     })
+    .orFail(new NotFoundError(`Пользователя с данным id: ${req.params.userId} не существует`))
     .catch(next);
 };
 

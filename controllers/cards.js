@@ -23,14 +23,13 @@ module.exports.deleteCard = (req, res, next) => {
     .then((card) => {
       if (card) {
         if (req.user._id.toString() === card.owner.toString()) {
-          Card.deleteOne(card)
+          return Card.deleteOne(card)
             .then(() => res.send({ message: 'Карточка успешно удалена' }));
-        } else {
-          throw new PermissionError('Нельзя удалить чужую карточку');
         }
-      } else {
-        throw new NotFoundError('Карточка не найдена');
+
+        throw new PermissionError('Нельзя удалить чужую карточку');
       }
     })
+    .orFail(new NotFoundError('Карточка не найдена'))
     .catch(next);
 };
