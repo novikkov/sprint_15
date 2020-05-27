@@ -20,14 +20,14 @@ module.exports.createCard = (req, res, next) => {
 
 module.exports.deleteCard = (req, res, next) => {
   Card.findById(req.params.cardId)
-    .orFail(new NotFoundError('Карточка не найдена'))
+    .orFail(() => new NotFoundError('Карточка не найдена'))
     .then((card) => {
-      if (card) {
-        if (req.user._id.toString() === card.owner.toString()) {
-          return Card.deleteOne(card)
-            .then(() => res.send({ message: 'Карточка успешно удалена' }));
-        }
+      if (!card.owner.equals(req.user._id)) {
+        throw new PermissionError('Нет прав на удаление карточки');
       }
+
+      return Card.deleteOne(card)
+        .then(() => res.send({ message: 'Карточка успешно удалена' }));
     })
     .catch(next);
 };
