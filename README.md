@@ -1,6 +1,6 @@
 # Sprint_15 - [https://novikkov.github.io/sprint_15/]
 
-## Публичный IP-адрес [130.193.37.107] сервера и домен - [https://api.novikkov.website], [https://novikkov.website]
+## Публичный IP-адрес [http://130.193.37.107] сервера и домен - [https://api.novikkov.website], [https://novikkov.website]
 
 ## Node.js
 
