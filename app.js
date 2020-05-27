@@ -45,13 +45,13 @@ app.post('/signup', celebrate({
     about: Joi.string().required().min(2).max(30),
     avatar: Joi.string().required().regex(/^http[s]?:\/\/(www\.)?(?!(www\.))((\d{1,3}\.){3}\d{1,3}(:\d{2,5})?|([a-z-]+(\.|:\d{2,5}))+)(\/?)(([a-zA-Z0-9-]{1,}?\/?)*#?)?$/i),
     email: Joi.string().required().email(),
-    password: Joi.string().min(8).regex(/[a-zA-Z0-9]/i),
+    password: Joi.string().required().min(8),
   }),
 }), createUser);
 app.post('/signin', celebrate({
   body: Joi.object().keys({
     email: Joi.string().required().email(),
-    password: Joi.string().min(8).regex(/[a-zA-Z0-9]/i),
+    password: Joi.string().required().min(8),
   }),
 }), login);
 
@@ -64,11 +64,13 @@ app.use(errorLogger);
 
 app.use(errors());
 
-app.use('/', (req, res, next) => {
-  res.status(404).json({ message: 'Запрашиваемый ресурс не найден' });
-  next();
+app.use('/', (err, req, res, next) => {
+  if (err) {
+    next(err);
+  }
 });
 
+// eslint-disable-next-line
 app.use((err, req, res, next) => {
   const { statusCode = 500, message } = err;
 

@@ -3,7 +3,6 @@ const jwt = require('jsonwebtoken');
 const User = require('../models/user');
 const { JWT_SECRET_KEY } = require('../config');
 const NotFoundError = require('../errors/not-found-err');
-const AuthError = require('../errors/auth-err');
 
 module.exports.login = (req, res, next) => {
   const { email, password } = req.body;
@@ -29,8 +28,6 @@ module.exports.getUserById = (req, res, next) => {
     .then((user) => {
       if (user) {
         res.send({ data: user });
-      } else {
-        throw new NotFoundError(`Пользователя с данным id: ${req.params.userId} не существует`);
       }
     })
     .catch(next);
