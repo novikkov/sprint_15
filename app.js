@@ -1,3 +1,4 @@
+require('dotenv').config();
 const express = require('express');
 const mongoose = require('mongoose');
 const bodyParser = require('body-parser');
@@ -9,8 +10,8 @@ const { errors } = require('celebrate');
 const { auth } = require('./middlewares/auth');
 const { login, createUser } = require('./controllers/users');
 const { requestLogger, errorLogger } = require('./middlewares/logger');
-
-const { PORT = 3000 } = process.env;
+const { PORT, SERVER_CONNECT } = require('./config');
+const NotFoundError = require('./errors/not-found-err');
 
 const app = express();
 
@@ -25,7 +26,7 @@ app.use(bodyParser.json());
 app.use(helmet());
 app.use(limiter);
 
-mongoose.connect('mongodb://localhost:27017/mestodb', {
+mongoose.connect(SERVER_CONNECT, {
   useNewUrlParser: true,
   useCreateIndex: true,
   useFindAndModify: false,
@@ -33,19 +34,25 @@ mongoose.connect('mongodb://localhost:27017/mestodb', {
 
 app.use(requestLogger);
 
+app.get('/crash-test', () => {
+  setTimeout(() => {
+    throw new Error('Сервер сейчас упадёт');
+  }, 0);
+});
+
 app.post('/signup', celebrate({
   body: Joi.object().keys({
     name: Joi.string().required().min(2).max(30),
     about: Joi.string().required().min(2).max(30),
     avatar: Joi.string().required().regex(/^http[s]?:\/\/(www\.)?(?!(www\.))((\d{1,3}\.){3}\d{1,3}(:\d{2,5})?|([a-z-]+(\.|:\d{2,5}))+)(\/?)(([a-zA-Z0-9-]{1,}?\/?)*#?)?$/i),
     email: Joi.string().required().email(),
-    password: Joi.string().min(8).regex(/^[a-zA-Z0-9]$/i),
+    password: Joi.string().required().min(8),
   }),
 }), createUser);
 app.post('/signin', celebrate({
   body: Joi.object().keys({
     email: Joi.string().required().email(),
-    password: Joi.string().min(8).regex(/^[a-zA-Z0-9]$/i),
+    password: Joi.string().required().min(8),
   }),
 }), login);
 
@@ -58,28 +65,21 @@ app.use(errorLogger);
 
 app.use(errors());
 
-app.use((err, req, res, next) => {
-  const isValidationError = err.message.indexOf('ValidationError');
-
-  if (err.message && isValidationError) {
-    res.status(400).send({ message: err.message });
-  } else {
-    const { statusCode = 500, message } = err;
-
-    res
-      .status(statusCode)
-      .send({
-        message: statusCode === 500
-          ? 'На сервере произошла ошибка'
-          : message,
-      });
-  }
-
-  next();
+app.use('/', (req, res, next) => {
+  next(new NotFoundError('Запрашиваемый ресурс не найден'));
 });
 
-app.use('/', (req, res) => {
-  res.status(404).json({ message: 'Запрашиваемый ресурс не найден' });
+// eslint-disable-next-line
+app.use((err, req, res, next) => {
+  const { statusCode = 500, message } = err;
+
+  res
+    .status(statusCode)
+    .send({
+      message: statusCode === 500
+        ? 'На сервере произошла ошибка'
+        : message,
+    });
 });
 
 app.listen(PORT, () => {

@@ -1,12 +1,12 @@
 # Sprint_15 - [https://novikkov.github.io/sprint_15/]
 
-## Проектная работа 15_v0.0.1
+## Публичный IP-адрес [http://130.193.37.107] сервера и домен - [https://api.novikkov.website], [https://novikkov.website]
 
 ## Node.js
 
 ### Краткая информация о проекте
 В работе используется Node.js (Express.js) и библиотека пакетов NPM для сборки кода проекта "Место" и публикации на сервере gh-pages.
-Актуальная версия проекта (v0.0.1) доступна по этой [ссылке](https://novikkov.github.io/sprint_12_backend/)
+Актуальная версия проекта (v0.0.1) доступна по этой [ссылке](https://novikkov.github.io/sprint_15/)
 
 ###  ПО для выполнения работы:
 <li>
