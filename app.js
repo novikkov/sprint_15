@@ -11,6 +11,7 @@ const { auth } = require('./middlewares/auth');
 const { login, createUser } = require('./controllers/users');
 const { requestLogger, errorLogger } = require('./middlewares/logger');
 const { PORT, SERVER_CONNECT } = require('./config');
+const NotFoundError = require('./errors/not-found-err');
 
 const app = express();
 
@@ -64,10 +65,8 @@ app.use(errorLogger);
 
 app.use(errors());
 
-app.use('/', (err, req, res, next) => {
-  if (err) {
-    next(err);
-  }
+app.use('/', (req, res, next) => {
+  next(new NotFoundError('Запрашиваемый ресурс не найден'));
 });
 
 // eslint-disable-next-line
